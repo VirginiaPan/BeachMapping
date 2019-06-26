@@ -28,15 +28,23 @@ import pyzed.sl as sl
 
 def main():
 
-    if len(sys.argv) != 2:
-        print("Please specify path to .svo file.")
-        exit()
+    #if len(sys.argv) != 2:
+    #    print("Please specify path to .svo file.")
+    #    exit()
 
-    filepath = sys.argv[1]
-    print("Reading SVO file: {0}".format(filepath))
+    #filepath = sys.argv[1]
+    #print("Reading SVO file: {0}".format(filepath))
 
     cam = sl.Camera()
-    init = sl.InitParameters(svo_input_filename=filepath)
+    #init = sl.InitParameters(svo_input_filename=filepath)
+    init = sl.InitParameters()
+    
+    #new
+    init.camera_resolution = sl.RESOLUTION.RESOLUTION_HD720  # Use HD720 video mode (default
+    # Use a right-handed Y-up coordinate system
+    init.coordinate_system = sl.COORDINATE_SYSTEM.COORDINATE_SYSTEM_RIGHT_HANDED_Y_UP
+    init.coordinate_units = sl.UNIT.UNIT_METER  # Set units in meters
+
     status = cam.open(init)
     if status != sl.ERROR_CODE.SUCCESS:
         print(repr(status))
