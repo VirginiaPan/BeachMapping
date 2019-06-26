@@ -66,7 +66,7 @@ def main():
 
                 print("\rImages captured: {0} || {1}".format(i, mapping_state))
   
-                #i = i + 1
+                i = i + 1
         except KeyboardInterrupt:
             print('All Done')
             print("\n")
