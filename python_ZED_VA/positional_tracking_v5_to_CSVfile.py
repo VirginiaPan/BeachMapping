@@ -99,7 +99,7 @@ def save_position(og_file):
                 filepath = input("Enter filepath name : ")
                 #params = filter_params.save(filepath)
                 shutil.copy(og_file,filepath)
-                print("copying positoin tracking")
+                print("copying position tracking")
                 if params:
                     break
                 else:
