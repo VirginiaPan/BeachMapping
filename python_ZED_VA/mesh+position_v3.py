@@ -1,4 +1,4 @@
-#######################################################################
+########################################################################
 #
 # Copyright (c) 2017, STEREOLABS.
 #
@@ -22,18 +22,16 @@
     Mesh sample shows mesh information after filtering and applying texture on frames. The mesh and its filter
     parameters can be saved.
 """
+import time
 import sys
 import pyzed.sl as sl
 import shutil
 
 def main():
-
-    #if len(sys.argv) != 2:
-    #    print("Please specify path to .svo file.")
-    #    exit()
-
-    #filepath = sys.argv[1]
-    #print("Reading SVO file: {0}".format(filepath))
+    
+    #delay program 60 sec, so that user can get to start location
+    time.sleep(60)
+    
 
     cam = sl.Camera()
     #init = sl.InitParameters(svo_input_filename=filepath)
@@ -53,7 +51,7 @@ def main():
     runtime = sl.RuntimeParameters()
     spatial = sl.SpatialMappingParameters()
     transform = sl.Transform()
-    tracking = sl.TrackingParameters(transform)
+    tracking = sl.TrackingParameters(transform) 
 
     cam.enable_tracking(tracking)
     cam.enable_spatial_mapping(spatial)
@@ -71,43 +69,76 @@ def main():
 
     pymesh = sl.Mesh()
     print("Processing...")
-    #for i in range(200):
+
+    
+    #time you want to gather data in seconds
+    max_time = 60
+    #get start time
+    start_time = time.time()
+
+    while (time.time() -start_time)<maxtime):
+        cam.grab(runtime)
+        cam.request_mesh_async()
+        # Get the pose of the left eye of the camera with reference to the world frame
+        cam.get_position(zed_pose, sl.REFERENCE_FRAME.REFERENCE_FRAME_WORLD)
+        cam.get_imu_data(zed_imu, sl.TIME_REFERENCE.TIME_REFERENCE_IMAGE)
+
+        # Display the translation and timestamp
+        py_translation = sl.Translation()
+        tx = round(zed_pose.get_translation(py_translation).get()[0], 3)
+        ty = round(zed_pose.get_translation(py_translation).get()[1], 3)
+        tz = round(zed_pose.get_translation(py_translation).get()[2], 3)
+        #position_file.write("Translation: Tx: {0}, Ty: {1}, Tz {2}, Timestamp: {3}\n".format(tx, ty, tz, zed_pose.timestamp))
+        position_file.write("{0},{1},{2},{3}\n".format(tx, ty, tz, zed_pose.timestamp))
+
+
+    cam.extract_whole_mesh(pymesh)
+    cam.disable_tracking()
+    cam.disable_spatial_mapping()
+
+    filter_params = sl.MeshFilterParameters()
+    filter_params.set(sl.MESH_FILTER.MESH_FILTER_HIGH)
+    print("Filtering params : {0}.".format(pymesh.filter(filter_params)))
+
+    apply_texture = pymesh.apply_texture(sl.MESH_TEXTURE_FORMAT.MESH_TEXTURE_RGBA)
+    print("Applying texture : {0}.".format(apply_texture))
+    #print_mesh_information(pymesh, apply_texture)
+
+    #save_filter(filter_params)
+    #save_mesh(pymesh)
+    cam.close()
+    position_file.close()
+    #save_position(path)
+    save_all(filter_params,pymesh,path)
+    print("\nFINISH")
+    raise
+            
+
+def save_all(filter_params,pymesh,og_file):
     while True:
-        try: 
-            cam.grab(runtime)
-            cam.request_mesh_async()
-            # Get the pose of the left eye of the camera with reference to the world frame
-            cam.get_position(zed_pose, sl.REFERENCE_FRAME.REFERENCE_FRAME_WORLD)
-            cam.get_imu_data(zed_imu, sl.TIME_REFERENCE.TIME_REFERENCE_IMAGE)
+        res = input("Do you want to save filter params, mesh and position tracking? [y/n]: ")
+        if res == "y":
+            params = sl.ERROR_CODE.ERROR_CODE_FAILURE
+            while params != sl.ERROR_CODE.SUCCESS:
+                filepath = input("Enter filepath name : ")
+                params = filter_params.save(filepath)
+                print("Saving mesh filter parameters: {0}".format(repr(params)))
+                msh = pymesh.save(filepath)
+                print("Saving mesh: {0}".format(repr(msh)))
+                shutil.copy(og_file,(filepath+".csv"))
+                print("copying position tracking")
+                if params:
+                    break
+                else:
+                    print("Help : you must enter the filepath + filename without extension.")
+            break
+        elif res == "n":
+            print("Mesh filter parameters will not be saved.")
+            break
+        else:
+            print("Error, please enter [y/n].")
 
-            # Display the translation and timestamp
-            py_translation = sl.Translation()
-            tx = round(zed_pose.get_translation(py_translation).get()[0], 3)
-            ty = round(zed_pose.get_translation(py_translation).get()[1], 3)
-            tz = round(zed_pose.get_translation(py_translation).get()[2], 3)
-            #position_file.write("Translation: Tx: {0}, Ty: {1}, Tz {2}, Timestamp: {3}\n".format(tx, ty, tz, zed_pose.timestamp))
-            position_file.write("{0},{1},{2},{3}\n".format(tx, ty, tz, zed_pose.timestamp))
 
-        except KeyboardInterrupt:
-            cam.extract_whole_mesh(pymesh)
-            cam.disable_tracking()
-            cam.disable_spatial_mapping()
-
-            filter_params = sl.MeshFilterParameters()
-            filter_params.set(sl.MESH_FILTER.MESH_FILTER_HIGH)
-            print("Filtering params : {0}.".format(pymesh.filter(filter_params)))
-
-            apply_texture = pymesh.apply_texture(sl.MESH_TEXTURE_FORMAT.MESH_TEXTURE_RGBA)
-            print("Applying texture : {0}.".format(apply_texture))
-            print_mesh_information(pymesh, apply_texture)
-
-            save_filter(filter_params)
-            save_mesh(pymesh)
-            cam.close()
-            position_file.close()
-            save_position(path)
-            print("\nFINISH")
-            raise
 
 def save_position(og_file):
     while True:
@@ -193,4 +224,3 @@ def save_mesh(pymesh):
 
 if __name__ == "__main__":
     main()
-
