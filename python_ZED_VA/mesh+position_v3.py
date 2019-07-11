@@ -1,27 +1,4 @@
-########################################################################
-#
-# Copyright (c) 2017, STEREOLABS.
-#
-# All rights reserved.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-########################################################################
 
-"""
-    Mesh sample shows mesh information after filtering and applying texture on frames. The mesh and its filter
-    parameters can be saved.
-"""
 import time
 import sys
 import pyzed.sl as sl
@@ -29,21 +6,27 @@ import shutil
 
 def main():
     
+    if len(sys.argv) != 3:
+        print("Please specify collection time, and path to save files")
+        exit()
+    max_time = sys.argv[1]
+    print(max_time)
+    path = sys.argv[2]
     #delay program 60 sec, so that user can get to start location
-    time.sleep(60)
-    
+    print("\nYou have 10 seconds to get to start location before program will begin")
+    time.sleep(10)
+    print("\nInitializing camera")
 
     cam = sl.Camera()
-    #init = sl.InitParameters(svo_input_filename=filepath)
     init = sl.InitParameters()
     
-    #new
-    init.camera_resolution = sl.RESOLUTION.RESOLUTION_HD720  # Use HD720 video mode (default
-    # Use a right-handed Y-up coordinate system
+    # Use HD720 video mode (default Use a right-handed Y-up coordinate system)
+    init.camera_resolution = sl.RESOLUTION.RESOLUTION_HD720  
     init.coordinate_system = sl.COORDINATE_SYSTEM.COORDINATE_SYSTEM_RIGHT_HANDED_Y_UP
-    init.coordinate_units = sl.UNIT.UNIT_METER  # Set units in meters
-
+    # Set units in meters
+    init.coordinate_units = sl.UNIT.UNIT_METER  
     status = cam.open(init)
+
     if status != sl.ERROR_CODE.SUCCESS:
         print(repr(status))
         exit()
@@ -56,27 +39,24 @@ def main():
     cam.enable_tracking(tracking)
     cam.enable_spatial_mapping(spatial)
 
-    #from  Positional Tracking: 
-    # Track the camera position until Keyboard Interupt (ctrl-C)
-    #i = 0
+    #for Positional Tracking: 
     zed_pose = sl.Pose()
     zed_imu = sl.IMUData()
     runtime_parameters = sl.RuntimeParameters()
-
-    path = '/media/nvidia/SD1/translation.csv'
-    position_file = open(path,'w')
-    #END from positional tracking
+    #temporary file to save translation data to, until you know the filename (given from the user)
+    #path = '/media/nvidia/SD1/translation.csv'
+    position_file = open((path+".csv"),'w+')
 
     pymesh = sl.Mesh()
-    print("Processing...")
-
+    print("Camera setup")
     
     #time you want to gather data in seconds
-    max_time = 60
     #get start time
     start_time = time.time()
 
-    while (time.time() -start_time)<maxtime):
+    print("Starting to collect data")
+
+    while (time.time() -start_time)<float(max_time):
         cam.grab(runtime)
         cam.request_mesh_async()
         # Get the pose of the left eye of the camera with reference to the world frame
@@ -91,7 +71,7 @@ def main():
         #position_file.write("Translation: Tx: {0}, Ty: {1}, Tz {2}, Timestamp: {3}\n".format(tx, ty, tz, zed_pose.timestamp))
         position_file.write("{0},{1},{2},{3}\n".format(tx, ty, tz, zed_pose.timestamp))
 
-
+    print("Finished collecting data, extracting mesh, saving and shutting down camera")    
     cam.extract_whole_mesh(pymesh)
     cam.disable_tracking()
     cam.disable_spatial_mapping()
@@ -109,12 +89,17 @@ def main():
     cam.close()
     position_file.close()
     #save_position(path)
-    save_all(filter_params,pymesh,path)
+    save_all_path_arg(filter_params,pymesh,path)
     print("\nFINISH")
     raise
-            
 
-def save_all(filter_params,pymesh,og_file):
+def save_all_path_arg(filter_params,pymesh,path):
+    params = filter_params.save(path)
+    print("Saving mesh filter parameters: {0}".format(repr(params)))
+    msh = pymesh.save(path)
+    print("Saving mesh: {0}".format(repr(msh)))
+              
+def save_all(filter_params,pymesh,og_file, path):
     while True:
         res = input("Do you want to save filter params, mesh and position tracking? [y/n]: ")
         if res == "y":
