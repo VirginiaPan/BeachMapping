@@ -7,14 +7,14 @@ import shutil
 def main():
     
     if len(sys.argv) != 3:
-        print("Please specify collection time, and path to save files")
+        print("Please specify collection time (seconds), and path to save files")
         exit()
     max_time = sys.argv[1]
     print(max_time)
     path = sys.argv[2]
     #delay program 60 sec, so that user can get to start location
-    print("\nYou have 10 seconds to get to start location before program will begin")
-    time.sleep(10)
+    print("\nYou have 30 seconds to get to start location before program will begin")
+    time.sleep(30)
     print("\nInitializing camera")
 
     cam = sl.Camera()
@@ -91,7 +91,7 @@ def main():
     #save_position(path)
     save_all_path_arg(filter_params,pymesh,path)
     print("\nFINISH")
-    raise
+    
 
 def save_all_path_arg(filter_params,pymesh,path):
     params = filter_params.save(path)
