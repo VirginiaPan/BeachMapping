@@ -15,7 +15,7 @@ def main():
     print(path)
     #delay program 60 sec, so that user can get to start location
     print("\nYou have 60 seconds to get to start location before program will begin")
-    time.sleep(1)
+    time.sleep(60)
     print("\nInitializing camera")
 
     cam = sl.Camera()

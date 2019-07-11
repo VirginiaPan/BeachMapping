@@ -15,8 +15,8 @@ def main():
     print(max_time)
 
     #delay program 60 sec, so that user can get to start location
-    print("You have 10 seconds to get to start location before program will begin")
-    time.sleep(10)
+    print("You have 60 seconds to get to start location before program will begin")
+    time.sleep(60)
     print("Initializing camera")
 
     init = sl.InitParameters()
