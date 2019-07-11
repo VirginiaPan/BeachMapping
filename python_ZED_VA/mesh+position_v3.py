@@ -12,9 +12,10 @@ def main():
     max_time = sys.argv[1]
     print(max_time)
     path = sys.argv[2]
+    print(path)
     #delay program 60 sec, so that user can get to start location
     print("\nYou have 60 seconds to get to start location before program will begin")
-    time.sleep(60)
+    time.sleep(1)
     print("\nInitializing camera")
 
     cam = sl.Camera()

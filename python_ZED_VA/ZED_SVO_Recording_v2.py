@@ -9,7 +9,7 @@ import cv2
 def main():
     
     if len(sys.argv) != 3:
-        print("Please specify collection time (seconds), and path to save files")
+        print("Please specify duration (sec)  and path to save .svo file")
         exit()
     max_time = sys.argv[1]
     print(max_time)
