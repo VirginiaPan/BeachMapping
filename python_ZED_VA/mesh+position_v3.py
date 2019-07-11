@@ -13,8 +13,8 @@ def main():
     print(max_time)
     path = sys.argv[2]
     #delay program 60 sec, so that user can get to start location
-    print("\nYou have 30 seconds to get to start location before program will begin")
-    time.sleep(30)
+    print("\nYou have 60 seconds to get to start location before program will begin")
+    time.sleep(60)
     print("\nInitializing camera")
 
     cam = sl.Camera()
@@ -50,7 +50,6 @@ def main():
     pymesh = sl.Mesh()
     print("Camera setup")
     
-    #time you want to gather data in seconds
     #get start time
     start_time = time.time()
 
